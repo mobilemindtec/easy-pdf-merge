@@ -1,97 +1,84 @@
+'use strict';
+
 var fs = require('fs');
 var exec = require('child_process').exec;
 var path = require('path');
 
-function checkSrc(src,callback){
+function checkSrc(src, callback) {
 
-      if(!Array.isArray(src))
-      return callback('Source is not an Array');
+  if (!Array.isArray(src)) return callback('Source is not an Array');else if (src.length < 2) return callback('There must be atleast 2 input files');
 
-      else if(src.length<2)
-      return callback('There must be atleast 2 input files');
+  var norm_src = [];
 
-      var norm_src = [];
+  for (var i = 0; i < src.length; i++) {
 
-      for(var i=0;i<src.length;i++){
+    if (typeof src[i] === 'string') {
 
-        if(typeof(src[i])==='string') {
+      /*
+      //Check if source file exists
+       fs.stat(src[i],function(err,stats){
+         if(err)
+          return callback('Can\'t access file : ' + src[i]);
+         if(!stats.isFile())
+          return callback(src[i] + ' is not a File');
+       });*/
 
-            /*
-            //Check if source file exists
+      norm_src.push('"' + src[i] + '"');
+    } else return callback('Source : ' + src[i] + ' + , is not a file name');
+  }
 
-            fs.stat(src[i],function(err,stats){
-
-              if(err)
-                return callback('Can\'t access file : ' + src[i]);
-
-              if(!stats.isFile())
-                return callback(src[i] + ' is not a File');
-
-            });*/
-
-            norm_src.push(`"${src[i]}"`);
-
-        }
-
-        else
-          return callback(`Source : ${src[i]} + , is not a file name`);
-
-      }
-
-      callback(null,norm_src);
-
+  callback(null, norm_src);
 }
 
-module.exports = function(src, dest, opts, callback){
+module.exports = function (src, dest, opts, callback) {
 
-      var defaultOpts = {
-        maxBuffer: 1024 * 500 // 500kb
-      };
+  var defaultOpts = {
+    maxBuffer: 1024 * 500, // 500kb
+    javaOpts: ""
+  };
 
-      // this will help to fix the old code using the function without opts
-      if (!callback) {
-          callback = opts;
-          opts = defaultOpts;
-      }
+  // this will help to fix the old code using the function without opts
+  if (!callback) {
+    callback = opts;
+    opts = defaultOpts;
+  }
 
-      // if opts is null, we will set the default options
-      if (!opts) {
-        opts = defaultOpts;
-      }
+  // if opts is null, we will set the default options
+  if (!opts) {
+    opts = defaultOpts;
+  }
 
-      var dirPathArr = __dirname.split(path.sep);
+  opts.javaOpts = opts.javaOpts || "" 
+  opts.maxBuffer = opts.maxBuffer || 1024 * 500
 
-      dirPathArr.pop();
-      dirPathArr.pop();
-      dirPathArr.push('jar');
-      dirPathArr.push('pdfbox.jar');
+  var dirPathArr = __dirname.split(path.sep);
 
-      var jarPath = dirPathArr.join(path.sep);
+  dirPathArr.pop();
+  dirPathArr.pop();
+  dirPathArr.push('jar');
+  dirPathArr.push('pdfbox.jar');
 
-      var command = [`java -jar "${jarPath}" PDFMerger`];
+  var jarPath = dirPathArr.join(path.sep);
 
-      checkSrc(src,function(err,norm_src){
+  var command = ['java ' + opts.javaOpts + ' -jar "' + jarPath + '" PDFMerger'];
 
-          if(err)
-          return callback(err);
+  checkSrc(src, function (err, norm_src) {
 
-          command = command.concat(norm_src);
+    if (err) return callback(err);
 
-          command.push(`"${dest}"`);
+    command = command.concat(norm_src);
 
-          var child = exec(command.join(' '), opts, function(err,stdout,stderr){
+    command.push('"' + dest + '"');
 
-              if(err)
-              return callback(err);
+    var child = exec(command.join(' '), opts, function (err, stdout, stderr) {
 
-              callback(null);
+      if (err) return callback(err);
 
-          });
+      callback(null);
+    });
 
-          child.on('error',function(err){
-            return callback(`Execution problem. ${err}`);
-          });
-
-      });
-
+    child.on('error', function (err) {
+      return callback('Execution problem. ' + err);
+    });
+  });
 };
