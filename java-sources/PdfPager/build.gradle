@@ -1,0 +1,30 @@
+plugins {
+    id 'java'
+}
+
+group 'br.com.mobilemind.api.pdf'
+version '1.0-SNAPSHOT'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+    compile group: 'org.apache.pdfbox', name: 'pdfbox', version: '2.0.1'
+}
+
+jar {
+    manifest {
+        attributes 'Main-Class': 'br.com.mobilemind.api.pdf.Main'
+    }
+}
+
+task copyToLib(type: Copy) {
+    into "$buildDir/libs/libs"
+    from configurations.runtime
+}
+
+tasks.jar.finalizedBy(copyToLib)
