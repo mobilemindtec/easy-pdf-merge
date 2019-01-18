@@ -41,6 +41,28 @@ merge(['File One.pdf','File Two.pdf'],'File Ouput.pdf',function(err){
 });
 ```
 
+### JAVA Params
+
+```
+
+      var javaOpts = "-server -Xms1024m -Xmx1024m -XX:NewSize=256m -XX:MaxNewSize=256m -XX:PermSize=256m -XX:MaxPermSize=256m -XX:+DisableExplicitGC -XX:ParallelGCThreads=8"
+
+      PDFMerge.merge(src, dest, { maxBuffer: 1024 * 1000, javaOpts: javaOpts }, function(err){
+      });
+       
+
+```
+
+### Pager
+
+```
+
+PDFMerge.pager(src, dest, { }, function(err){
+        
+})
+
+```
+
 ### Using absolute file paths
 ```
 merge(['/home/karuppiah/File One.pdf','/home/karuppiah/File Two.pdf'],'/home/karuppiah/Desktop/File Ouput.pdf',function(err){
